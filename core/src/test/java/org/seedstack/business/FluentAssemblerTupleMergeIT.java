@@ -11,6 +11,7 @@ package org.seedstack.business;
 import static junit.framework.TestCase.fail;
 
 import javax.inject.Inject;
+
 import org.assertj.core.api.Assertions;
 import org.javatuples.Pair;
 import org.junit.Test;
@@ -166,4 +167,5 @@ public class FluentAssemblerTupleMergeIT {
         Assertions.assertThat(customer.getName())
                 .isEqualTo("luke"); // updated info
     }
+
 }
