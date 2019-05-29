@@ -17,6 +17,11 @@ import org.seedstack.business.domain.DomainEventPublisher;
 import org.seedstack.business.fixtures.event.MyDomainEvent;
 import org.seedstack.business.fixtures.event.MyDomainEvent2;
 import org.seedstack.business.fixtures.event.cyclic.Event1;
+import org.seedstack.business.fixtures.event.interceptors.HighestPriorityEventHandler;
+import org.seedstack.business.fixtures.event.interceptors.InterceptedNullEvent;
+import org.seedstack.business.fixtures.event.interceptors.InterceptedPriorizedEvent;
+import org.seedstack.business.fixtures.event.interceptors.LowestPriorityEventHandler;
+import org.seedstack.business.fixtures.event.interceptors.PriorizedFixtureEvent;
 import org.seedstack.business.internal.BusinessException;
 import org.seedstack.seed.testing.junit4.SeedITRunner;
 
@@ -61,4 +66,55 @@ public class DomainEventPublisherIT {
     public void fire_cyclic_events() {
         domainEventPublisher.publish(new Event1());
     }
+
+    @Test
+    public void testDefaultInterceptor() throws Exception {
+        PriorizedFixtureEvent.reset();
+
+        LowestPriorityEventHandler.lastEvent = 0;
+        HighestPriorityEventHandler.lastEvent = 0;
+
+        Assertions.assertThat(LowestPriorityEventHandler.lastEvent)
+                .isEqualTo(HighestPriorityEventHandler.lastEvent);
+
+        domainEventPublisher.publish(new PriorizedFixtureEvent());
+
+        Assertions.assertThat(LowestPriorityEventHandler.lastEvent)
+                .isLessThan(HighestPriorityEventHandler.lastEvent);
+    }
+
+    @Test
+    public void testExplicitReverseInterceptor() throws Exception {
+        PriorizedFixtureEvent.reset();
+
+        LowestPriorityEventHandler.lastEvent = 0;
+        HighestPriorityEventHandler.lastEvent = 0;
+
+        Assertions.assertThat(LowestPriorityEventHandler.lastEvent)
+                .isEqualTo(HighestPriorityEventHandler.lastEvent);
+
+        domainEventPublisher.publish(new InterceptedPriorizedEvent());
+
+        Assertions.assertThat(LowestPriorityEventHandler.lastEvent)
+                .isGreaterThan(HighestPriorityEventHandler.lastEvent);
+    }
+    
+    @Test
+    public void testPrunerInterceptor() throws Exception {
+        PriorizedFixtureEvent.reset();
+
+        LowestPriorityEventHandler.lastEvent = 0;
+        HighestPriorityEventHandler.lastEvent = 0;
+
+        Assertions.assertThat(LowestPriorityEventHandler.lastEvent).isEqualTo(0);
+        Assertions.assertThat(HighestPriorityEventHandler.lastEvent).isEqualTo(0);
+
+        domainEventPublisher.publish(new InterceptedNullEvent());
+
+        Assertions.assertThat(LowestPriorityEventHandler.lastEvent).isEqualTo(0);
+        Assertions.assertThat(HighestPriorityEventHandler.lastEvent).isEqualTo(0);
+
+    }
+    
+
 }
